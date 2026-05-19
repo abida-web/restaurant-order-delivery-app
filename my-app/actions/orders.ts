@@ -53,7 +53,7 @@ type OrderStatus =
   | "delivered"
   | "completed"
   | "cancelled";
-export async function updateStatus(orderId: string, status: OrderStatus) {
+export async function updateStatus(orderId: string, status: any) {
   const session = await auth.api.getSession({ headers: await headers() });
   if (
     session?.user.role !== "kitchen" &&
