@@ -45,10 +45,16 @@ export async function getReadyOrders() {
   });
   return allOrders;
 }
-// This still accepts any string but validates at runtime
-export async function updateStatus(orderId: string, status: string) {
+type OrderStatus =
+  | "pending"
+  | "preparing"
+  | "ready"
+  | "out_for_delivery"
+  | "delivered"
+  | "completed"
+  | "cancelled";
+export async function updateStatus(orderId: string, status: OrderStatus) {
   const session = await auth.api.getSession({ headers: await headers() });
-
   if (
     session?.user.role !== "kitchen" &&
     session?.user.role !== "admin" &&
@@ -56,30 +62,11 @@ export async function updateStatus(orderId: string, status: string) {
   ) {
     throw new Error("You are not allowed");
   }
-
-  // Runtime validation
-  const validStatuses = [
-    "pending",
-    "preparing",
-    "ready",
-    "out_for_delivery",
-    "delivered",
-    "completed",
-    "cancelled",
-  ];
-
-  if (!validStatuses.includes(status)) {
-    throw new Error(
-      `Invalid status: ${status}. Must be one of: ${validStatuses.join(", ")}`,
-    );
-  }
-
   const update = await db
     .update(orders)
-    .set({ status: status as any }) // Now safe because we validated
+    .set({ status: status })
     .where(eq(orders.id, orderId))
     .returning();
-
   return { success: true };
 }
 export async function bestSelling() {
