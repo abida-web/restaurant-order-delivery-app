@@ -47,6 +47,7 @@ export async function getReadyOrders() {
 }
 export async function updateStatus(orderId: string, status: string) {
   const session = await auth.api.getSession({ headers: await headers() });
+
   if (
     session?.user.role !== "kitchen" &&
     session?.user.role !== "admin" &&
@@ -54,11 +55,14 @@ export async function updateStatus(orderId: string, status: string) {
   ) {
     throw new Error("You are not allowed");
   }
+
+  // Type assertion - tell TypeScript this is a valid status
   const update = await db
     .update(orders)
-    .set({ status: status })
+    .set({ status: status as any }) // or as OrderStatus
     .where(eq(orders.id, orderId))
     .returning();
+
   return { success: true };
 }
 export async function bestSelling() {
